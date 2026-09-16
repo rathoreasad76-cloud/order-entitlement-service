@@ -1,5 +1,6 @@
 package com.asadrathore.orderentitlement.api;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -11,14 +12,14 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record PlaceOrderRequest(
-        @NotBlank String customerId,
-        @NotBlank String currency,
+        @Schema(example = "customer-1") @NotBlank String customerId,
+        @Schema(description = "ISO 4217 currency code", example = "USD") @NotBlank String currency,
         @NotEmpty @Valid List<Line> lines
 ) {
     public record Line(
-            @NotBlank String productCode,
-            @Positive int quantity,
-            @NotNull @DecimalMin(value = "0.00") BigDecimal unitPrice
+            @Schema(example = "PRO_LICENSE") @NotBlank String productCode,
+            @Schema(example = "1") @Positive int quantity,
+            @Schema(example = "99.00") @NotNull @DecimalMin(value = "0.00") BigDecimal unitPrice
     ) {
     }
 }

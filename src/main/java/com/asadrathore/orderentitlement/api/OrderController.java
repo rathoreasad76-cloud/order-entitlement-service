@@ -1,9 +1,16 @@
 package com.asadrathore.orderentitlement.api;
 
+import com.asadrathore.orderentitlement.api.ApiExceptionHandler.ErrorResponse;
 import com.asadrathore.orderentitlement.application.OrderQueryService;
 import com.asadrathore.orderentitlement.application.OrderView;
 import com.asadrathore.orderentitlement.application.PlaceOrderCommand;
 import com.asadrathore.orderentitlement.application.PlaceOrderCommandHandler;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +27,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/orders")
+@Tag(name = "Orders", description = "Place orders and read them back")
 public class OrderController {
 
     private final PlaceOrderCommandHandler placeOrderCommandHandler;
@@ -30,11 +38,20 @@ public class OrderController {
         this.orderQueryService = orderQueryService;
     }
 
+    @Operation(
+            summary = "Place an order",
+            description = "Idempotent: repeating a request with the same Idempotency-Key returns the "
+                    + "original order instead of creating a duplicate. Entitlements are granted "
+                    + "after the order commits.")
+    @ApiResponse(responseCode = "201", description = "Order placed (or the existing order for this key)")
+    @ApiResponse(responseCode = "400", description = "Invalid request",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @PostMapping
     public ResponseEntity<OrderView> placeOrder(
+            @Parameter(description = "Client-generated key that makes retries safe", example = "demo-key-1")
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody PlaceOrderRequest request,
-            UriComponentsBuilder uriBuilder) {
+            @Parameter(hidden = true) UriComponentsBuilder uriBuilder) {
 
         PlaceOrderCommand command = new PlaceOrderCommand(
                 request.customerId(),
@@ -52,6 +69,10 @@ public class OrderController {
         return ResponseEntity.created(location).body(view);
     }
 
+    @Operation(summary = "Get an order by id")
+    @ApiResponse(responseCode = "200", description = "Order found")
+    @ApiResponse(responseCode = "404", description = "No order with this id",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping("/{id}")
     public OrderView getOrder(@PathVariable UUID id) {
         return orderQueryService.getById(id);

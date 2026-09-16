@@ -92,6 +92,10 @@ curl -X POST http://localhost:8080/api/orders \
       }'
 ```
 
+Or explore and call the API from Swagger UI at
+<http://localhost:8080/swagger-ui.html> (the raw OpenAPI spec is at
+<http://localhost:8080/v3/api-docs>).
+
 Then check the entitlement landed:
 
 ```bash

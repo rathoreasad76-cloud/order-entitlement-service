@@ -16,7 +16,7 @@ services:
       POSTGRES_USER: order_entitlement
       POSTGRES_PASSWORD: order_entitlement
     ports:
-      - "5432:5432"
+      - "5434:5434"
     volumes:
       - order_entitlement_pgdata:/var/lib/postgresql/data
     healthcheck:
