@@ -1,0 +1,42 @@
+# Local dev stack: Postgres + the service itself.
+#
+# Usage:
+#   docker compose up --build
+#
+# The app will be reachable on http://localhost:8080 and will run its
+# Liquibase migrations automatically on startup.
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: order-entitlement-postgres
+    environment:
+      POSTGRES_DB: order_entitlement
+      POSTGRES_USER: order_entitlement
+      POSTGRES_PASSWORD: order_entitlement
+    ports:
+      - "5432:5432"
+    volumes:
+      - order_entitlement_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_entitlement"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: order-entitlement-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_entitlement
+      SPRING_DATASOURCE_USERNAME: order_entitlement
+      SPRING_DATASOURCE_PASSWORD: order_entitlement
+    ports:
+      - "8080:8080"
+
+volumes:
+  order_entitlement_pgdata:

@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: order-entitlement-service
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/order_entitlement}
+    username: ${DB_USER:order_entitlement}
+    password: ${DB_PASSWORD:order_entitlement}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info

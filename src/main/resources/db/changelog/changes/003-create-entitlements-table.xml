@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="003-create-entitlements-table" author="asad.rathore">
+        <createTable tableName="entitlements">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_id" type="VARCHAR(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_code" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_order_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_entitlements_order" references="orders(id)"/>
+            </column>
+            <column name="granted_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="idx_entitlements_customer_id" tableName="entitlements">
+            <column name="customer_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
