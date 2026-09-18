@@ -1,5 +1,6 @@
 package com.asadrathore.orderentitlement.api;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,7 +13,11 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    public record ErrorResponse(String message, Instant timestamp) {
+    @Schema(description = "Returned instead of the requested resource when a call fails")
+    public record ErrorResponse(
+            @Schema(description = "What went wrong, safe to surface to the caller",
+                    example = "order 3f8a... not found") String message,
+            @Schema(description = "When the failure was produced") Instant timestamp) {
     }
 
     @ExceptionHandler(NoSuchElementException.class)

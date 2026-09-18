@@ -3,7 +3,7 @@ spring:
     name: order-entitlement-service
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/order_entitlement}
+    url: ${DB_URL:jdbc:postgresql://localhost:5436/order_entitlement}
     username: ${DB_USER:order_entitlement}
     password: ${DB_PASSWORD:order_entitlement}
 
@@ -18,16 +18,36 @@ spring:
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
 
+aws:
+  region: ${AWS_REGION:us-east-1}
+  endpoint-override: ${AWS_ENDPOINT_OVERRIDE:}
+  access-key: ${AWS_ACCESS_KEY:test}
+  secret-key: ${AWS_SECRET_KEY:test}
+  sns:
+    topic-arn: ${AWS_SNS_TOPIC_ARN:arn:aws:sns:us-east-1:000000000000:order-entitlement-events}
+
 server:
   port: 8080
 
+# Exposed by springdoc: the machine-readable spec at /v3/api-docs and the UI that
+# renders it at /swagger-ui.html. Both are on by default; pinned here so the paths
+# are visible in config rather than implied, and so they can be turned off per
+# environment (springdoc.api-docs.enabled / springdoc.swagger-ui.enabled) if the
+# service is ever fronted by something that shouldn't expose them publicly.
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
-    operations-sorter: method
     tags-sorter: alpha
+    operations-sorter: method
+    display-request-duration: true
+
+# Filtered in from the Maven build so the published spec reports the artifact
+# version without anyone having to keep the two in step by hand.
+info:
+  app:
+    version: '@project.version@'
 
 management:
   endpoints:

@@ -1,10 +1,12 @@
-# Local dev stack: Postgres + the service itself.
+# Local dev stack: Postgres + LocalStack (SNS) + the service itself.
 #
 # Usage:
 #   docker compose up --build
 #
 # The app will be reachable on http://localhost:8080 and will run its
-# Liquibase migrations automatically on startup.
+# Liquibase migrations automatically on startup. LocalStack creates the SNS
+# topic the app publishes to on its own startup (see localstack-init/), so
+# there's no manual AWS setup step.
 version: "3.9"
 
 services:
@@ -16,11 +18,27 @@ services:
       POSTGRES_USER: order_entitlement
       POSTGRES_PASSWORD: order_entitlement
     ports:
-      - "5434:5434"
+      - "5436:5432"
     volumes:
       - order_entitlement_pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U order_entitlement"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  localstack:
+    image: localstack/localstack:3.7
+    container_name: order-entitlement-localstack
+    environment:
+      SERVICES: sns,sqs
+      DEBUG: 0
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./localstack-init:/etc/localstack/init/ready.d
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -31,10 +49,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      localstack:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/order_entitlement
       SPRING_DATASOURCE_USERNAME: order_entitlement
       SPRING_DATASOURCE_PASSWORD: order_entitlement
+      AWS_ENDPOINT_OVERRIDE: http://localstack:4566
+      AWS_SNS_TOPIC_ARN: arn:aws:sns:us-east-1:000000000000:order-entitlement-events
     ports:
       - "8080:8080"
 
